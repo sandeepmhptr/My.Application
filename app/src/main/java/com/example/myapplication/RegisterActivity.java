@@ -27,11 +27,11 @@ import java.util.List;
 
 public class RegisterActivity extends AppCompatActivity implements AsyncResponse {
     Button btn_Connect;
-    EditText busNumberEdit;
-    EditText text;
-    EditText HTTPResult;
-    String myServer="http://swulj.atwebpages.com/hi.php";
+    EditText text, stop1, stop2, HTTPResult, busNumberEdit;
+    String myServer = "https://swulj.000webhostapp.com/bus.php";
+    String myServer2 = "http://swulj.atwebpages.com/hi.php";
     String myResult, token, busNumber;
+    //int i =0;
 
     RegisterActivity obj = this;
     @Override
@@ -42,6 +42,8 @@ public class RegisterActivity extends AppCompatActivity implements AsyncResponse
         busNumberEdit = (EditText) findViewById(R.id.Bus_number);
         text = (EditText) findViewById(R.id.text);
         HTTPResult = (EditText) findViewById(R.id.HTTPResult);
+        stop1 = (EditText) findViewById(R.id.stop1);
+        stop2 = (EditText) findViewById(R.id.stop2);
         //text.setText("Enter Bus Number:");
 
 
@@ -52,34 +54,34 @@ public class RegisterActivity extends AppCompatActivity implements AsyncResponse
 
                 String Command = (String) text.getHint().toString();
                 String Command2 = Command;
-                HTTPResult.setText(Command2);
+                //HTTPResult.setText(Command2);
                 String stop = (String) busNumberEdit.getText().toString();
-                if(Command.compareTo("Enter Bus Number:") == 0)
+                if((Command.contentEquals("Enter Bus Number:")) )
                 {
                     Toast.makeText(getApplicationContext(),"You download is resumed2",Toast.LENGTH_LONG).show();
                     HTTPConnection1 conn = new HTTPConnection1();
                     conn.delegate =  obj;
                     busNumber = (String) busNumberEdit.getText().toString();
-                    MyTaskParams paramObj = new MyTaskParams(3, myServer, busNumber, Command2, "");
+                    MyTaskParams paramObj = new MyTaskParams(3, myServer, busNumber, Command2, "-1");
                     //paramObj.print();
                     //HTTPResult.setText(Command2);
                     conn.execute(paramObj);
                 }
-                else
+                else if(Command.contentEquals("Enter stops:"))
                 {
-                    //HTTPResult.setText("change bus Number");
-
-                    if(Command.compareTo("Enter stops:") == 0)
-                    {
-                        HTTPConnection1 conn = new HTTPConnection1();
-                        conn.delegate =  obj;
-                        MyTaskParams paramObj = new MyTaskParams(4,myServer, busNumber, Command, stop);
-                        conn.execute(paramObj);
-                    }
-                    else
-                    {
-                        HTTPResult.setText("change stop");
-                    }
+                    HTTPConnection1 conn = new HTTPConnection1();
+                    conn.delegate =  obj;
+                    MyTaskParams paramObj = new MyTaskParams(4,myServer, busNumber, Command, stop);
+                    conn.execute(paramObj);
+                }
+                else if(Command.contentEquals("enter fares between stops:"))
+                {
+                    HTTPConnection1 conn = new HTTPConnection1();
+                    conn.delegate =  obj;
+                    double fare = Double.valueOf( busNumberEdit.getText().toString());
+                    MyTaskParams paramObj = new MyTaskParams(fare,myServer, busNumber, Command, "-1");
+                    //paramObj.print();
+                    conn.execute(paramObj);
                 }
             }
         });
@@ -93,8 +95,37 @@ public class RegisterActivity extends AppCompatActivity implements AsyncResponse
         HTTPResult.setText(output);
         int len = output.length();
         String res = null;
+        String stopToken = null;
+        String[] stops = null;
 
-        for(int i = 0, j = 0;j < len; j++ )
+        String[] tokens = output.split("<br>");
+
+        String token = tokens[0];
+        System.out.println(token);
+        //HTTPResult.setText("length = " + String.valueOf(tokens.length));
+        if (tokens.length == 4) {
+            res = tokens[3];
+            text.setText(tokens[2]);
+            //System.out.println(token);
+        }
+        else if (tokens.length == 5) {
+            res = tokens[4];
+            text.setText(tokens[2]);
+            stop1.setHint(tokens[3]);
+            stop1.setHint(tokens[1]);
+            //System.out.println(token);
+        }
+        else if (tokens.length == 9) {
+            res = tokens[2];
+            text.setText(tokens[2]);
+            stop1.setHint(tokens[3]);
+            stop1.setHint(tokens[1]);
+            stopToken = tokens[8];
+            stops = stopToken.split("::");
+            //System.out.println(token);
+        }
+
+        /*for(int i = 0, j = 0;j < len; j++ )
         {
             if(output.charAt(j) == '<')
             {
@@ -105,28 +136,44 @@ public class RegisterActivity extends AppCompatActivity implements AsyncResponse
                 }
                 else
                 {
-                    busNumberEdit.setText(token);
+                    //busNumberEdit.setText(token);
                     res = token;
                 }
                 j = j + 4;
                 i = j;
             }
-        }
-        if(res.compareTo("Enter stops:") == 0)
+        }*/
+        //res = res + ":";
+        if(res!=null)
+        if(res.contentEquals("Enter stops:") )
         {
             text.setHint(res);
-            busNumberEdit.setText("Next stop is:");
+            busNumberEdit.setHint("Next stop is:");
+            //busNumberEdit.setHint(text.getHint().toString());
+            //busNumberEdit.setText("token");
         }
+        else if(res.contentEquals("enter fares between stops:") )
+        {
+            text.setHint(res);
+            busNumberEdit.setHint("fare between the following stops is:");
+            stop1.setText(stops[1]);
+            stop2.setText(stops[3]);
+            //busNumberEdit.setHint(text.getHint().toString());
+            //busNu
+            //
+            // mberEdit.setText("token");
+        }
+
     }
 
 
      class MyTaskParams {
-        int numParams;
+        double fare;
         String url, busNumber, stop, Command;
 
 
-        MyTaskParams(int paramNum, String url, String busNumber, String command, String stop) {
-            this.numParams = paramNum;
+        MyTaskParams(double fare, String url, String busNumber, String command, String stop) {
+            this.fare = fare;
             this.url = url;
             this.busNumber = busNumber;
             this.Command = command;
@@ -134,21 +181,21 @@ public class RegisterActivity extends AppCompatActivity implements AsyncResponse
         }
         void print()
         {
-            HTTPResult.setText(busNumber + ";" + Command + ";" + stop);
+            HTTPResult.setText(fare + ";" + busNumber + ";" + Command + ";" + stop);
         }
     }
 
 
     class HTTPConnection1 extends AsyncTask<MyTaskParams, Void, String> {
         String result;
-        int numParams;
+        double fare;
         String url, stop, command, busNumber;
         public AsyncResponse delegate = null;
         
         @Override
         protected String doInBackground(MyTaskParams... params) {
 
-            numParams = params[0].numParams;
+            fare = params[0].fare;
             url = params[0].url;
             busNumber = params[0].busNumber;
             command = params[0].Command;
@@ -161,7 +208,7 @@ public class RegisterActivity extends AppCompatActivity implements AsyncResponse
                 nameValuePairs = new ArrayList<NameValuePair>(4);
 
 
-                nameValuePairs.add(new BasicNameValuePair("param", String.valueOf(numParams)));
+                nameValuePairs.add(new BasicNameValuePair("fare", String.valueOf(fare)));
                 nameValuePairs.add(new BasicNameValuePair("id", busNumber));
                 nameValuePairs.add(new BasicNameValuePair("command", command));
                 nameValuePairs.add(new BasicNameValuePair("stop", stop));

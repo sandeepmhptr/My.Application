@@ -15,6 +15,26 @@
 
     </EditText>
     <EditText
+        android:id="@+id/stop1"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:inputType="text"
+        android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-:"
+        android:lines="1"
+        android:hint="stop is:">
+
+    </EditText>
+    <EditText
+        android:id="@+id/stop2"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:inputType="text"
+        android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-:"
+        android:lines="1"
+        android:hint="stop is:">
+
+    </EditText>
+    <EditText
         android:id="@+id/Bus_number"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
